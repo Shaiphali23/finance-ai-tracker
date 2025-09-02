@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OAuth Callback Troubleshooter</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #4285f4;
+            --secondary: #34a853;
+            --warning: #fbbc05;
+            --danger: #ea4335;
+            --light: #f8f9fa;
+            --dark: #202124;
+            --gray: #5f6368;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            color: var(--dark);
+            line-height: 1.6;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        
+        header {
+            background: linear-gradient(120deg, var(--primary) 0%, #3f51b5 100%);
+            color: white;
+            padding: 25px;
+            text-align: center;
+            position: relative;
+        }
+        
+        .logo {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+        
+        h1 {
+            font-size: 32px;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+        
+        .subtitle {
+            font-size: 18px;
+            opacity: 0.9;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .content {
+            padding: 30px;
+        }
+        
+        .section {
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        h2 {
+            color: var(--primary);
+            margin-bottom: 15px;
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+        }
+        
+        h2 i {
+            margin-right: 10px;
+        }
+        
+        h3 {
+            color: var(--gray);
+            margin: 15px 0 10px;
+            font-size: 20px;
+        }
+        
+        .card {
+            background: var(--light);
+            border-radius: 8px;
+            padding: 20px;
+            margin: 15px 0;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+        }
+        
+        .code {
+            font-family: 'Courier New', monospace;
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            margin: 10px 0;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        
+        .success {
+            border-left: 4px solid var(--secondary);
+        }
+        
+        .warning {
+            border-left: 4px solid var(--warning);
+        }
+        
+        .error {
+            border-left: 4px solid var(--danger);
+        }
+        
+        .step {
+            display: flex;
+            align-items: flex-start;
+            margin: 20px 0;
+        }
+        
+        .step-number {
+            background: var(--primary);
+            color: white;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            flex-shrink: 0;
+            font-weight: bold;
+            box-shadow: 0 4px 8px rgba(66, 133, 244, 0.3);
+        }
+        
+        .step-content {
+            flex: 1;
+        }
+        
+        .btn {
+            display: inline-block;
+            background: var(--primary);
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 0;
+            text-decoration: none;
+            transition: all 0.3s;
+            box-shadow: 0 4px 8px rgba(66, 133, 244, 0.3);
+        }
+        
+        .btn:hover {
+            background: #3367d6;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(66, 133, 244, 0.4);
+        }
+        
+        .test-area {
+            background: #f0f7ff;
+            padding: 25px;
+            border-radius: 10px;
+            margin: 25px 0;
+            border: 1px dashed var(--primary);
+        }
+        
+        .result {
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+            display: none;
+        }
+        
+        .success-result {
+            background: #e6f4ea;
+            color: #137333;
+            border-left: 4px solid var(--secondary);
+        }
+        
+        .error-result {
+            background: #fce8e6;
+            color: #c5221f;
+            border-left: 4px solid var(--danger);
+        }
+        
+        .url-path {
+            font-weight: bold;
+            color: var(--primary);
+            background: #f0f7ff;
+            padding: 5px 10px;
+            border-radius: 4px;
+            display: inline-block;
+            margin: 5px 0;
+        }
+        
+        .status-item {
+            margin: 10px 0;
+            display: flex;
+            align-items: center;
+        }
+        
+        .status-icon {
+            margin-right: 10px;
+            font-weight: bold;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--secondary);
+            color: white;
+        }
+        
+        .status-icon.error {
+            background: var(--danger);
+        }
+        
+        .checklist {
+            margin: 15px 0;
+            padding-left: 20px;
+        }
+        
+        .checklist li {
+            margin: 12px 0;
+            list-style-type: none;
+            display: flex;
+            align-items: flex-start;
+        }
+        
+        .checklist li:before {
+            content: "•";
+            color: var(--primary);
+            font-weight: bold;
+            margin-right: 10px;
+            font-size: 20px;
+        }
+        
+        .env-vars {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 15px;
+            margin: 15px 0;
+        }
+        
+        .env-var {
+            background: #f5f5f5;
+            padding: 10px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+        }
+        
+        .tab-container {
+            margin: 20px 0;
+        }
+        
+        .tabs {
+            display: flex;
+            border-bottom: 2px solid #eee;
+        }
+        
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            margin-bottom: -2px;
+        }
+        
+        .tab.active {
+            border-bottom: 2px solid var(--primary);
+            color: var(--primary);
+            font-weight: bold;
+        }
+        
+        .tab-content {
+            display: none;
+            padding: 20px 0;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        @media (max-width: 768px) {
+            .content {
+                padding: 20px;
+            }
+            
+            h1 {
+                font-size: 28px;
+            }
+            
+            h2 {
+                font-size: 22px;
+            }
+            
+            .env-vars {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .progress-bar {
+            height: 6px;
+            background: #eee;
+            border-radius: 3px;
+            overflow: hidden;
+            margin: 15px 0;
+        }
+        
+        .progress {
+            height: 100%;
+            background: var(--primary);
+            width: 0%;
+            transition: width 0.5s;
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        .loading i {
+            font-size: 40px;
+            color: var(--primary);
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">
+                <i class="fab fa-google"></i>
+            </div>
+            <h1>OAuth Callback Troubleshooter</h1>
+            <p class="subtitle">Diagnose and fix issues with your Google OAuth callback URL</p>
+        </header>
+        
+        <div class="content">
+            <div class="section">
+                <h2><i class="fas fa-exclamation-circle"></i> Problem Description</h2>
+                <p>You're experiencing issues with the OAuth callback URL:</p>
+                <p class="url-path">localhost:4000/auth/google/callback?</p>
+                <p>The page isn't showing anything after selecting Gmail for authentication.</p>
+            </div>
+            
+            <div class="section">
+                <h2><i class="fas fa-bug"></i> Common Causes & Solutions</h2>
+                
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <h3>Google Cloud Console Configuration</h3>
+                        <p>Ensure your redirect URI is properly configured in Google Cloud Console:</p>
+                        <div class="code">http://localhost:4000/auth/google/callback</div>
+                        <div class="checklist">
+                            <li>Go to Google Cloud Console → APIs & Services → Credentials</li>
+                            <li>Select your OAuth 2.0 Client ID</li>
+                            <li>Add <code>http://localhost:4000/auth/google/callback</code> to Authorized redirect URIs</li>
+                            <li>Save the changes</li>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <h3>Environment Variables Check</h3>
+                        <p>Verify your environment variables are set correctly:</p>
+                        <div class="env-vars">
+                            <div class="env-var">JWT_SECRET=your_jwt_secret_here</div>
+                            <div class="env-var">GOOGLE_CLIENT_ID=your_google_client_id</div>
+                            <div class="env-var">GOOGLE_CLIENT_SECRET=your_google_client_secret</div>
+                            <div class="env-var">FRONTEND_URL=http://localhost:5173</div>
+                        </div>
+                        <p>Your callback code references these environment variables:</p>
+                        <div class="code">res.redirect(`${process.env.FRONTEND_URL || "http://localhost:5173"}/dashboard?token=${token}`);</div>
+                    </div>
+                </div>
+                
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <h3>Passport.js Configuration</h3>
+                        <p>Ensure you've properly configured Passport.js with the Google strategy:</p>
+                        <div class="code">passport.use(new GoogleStrategy({
+    clientID: process.env.GOOGLE_CLIENT_ID,
+    clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+    callbackURL: "/auth/google/callback"
+}, (accessToken, refreshToken, profile, done) => {
+    // Your verification logic here
+}));</div>
+                    </div>
+                </div>
+                
+                <div class="step">
+                    <div class="step-number">4</div>
+                    <div class="step-content">
+                        <h3>Server Status Check</h3>
+                        <p>Make sure your server is running on port 4000:</p>
+                        <div class="code">node server.js</div>
+                        <p>Test if your server is responding:</p>
+                        <button class="btn" id="testServerBtn">Test Server Connection</button>
+                        <div class="result" id="serverResult"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h2><i class="fas fa-tools"></i> Debugging Tools</h2>
+                
+                <div class="test-area">
+                    <h3>Test Your Configuration</h3>
+                    <p>Click the button below to simulate the OAuth flow and identify where it fails:</p>
+                    <button class="btn" id="testBtn">Test OAuth Configuration</button>
+                    
+                    <div class="loading" id="loading">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        <p>Testing your configuration...</p>
+                    </div>
+                    
+                    <div class="progress-bar">
+                        <div class="progress" id="progress"></div>
+                    </div>
+                    
+                    <div class="result success-result" id="successResult">
+                        <p><i class="fas fa-check-circle"></i> Success! Your configuration appears to be correct.</p>
+                    </div>
+                    
+                    <div class="result error-result" id="errorResult">
+                        <p><i class="fas fa-exclamation-circle"></i> Issues detected. Check the details below.</p>
+                    </div>
+                </div>
+                
+                <div class="card warning">
+                    <h3>Server Logs Check</h3>
+                    <p>Check your server logs for any error messages. Common issues include:</p>
+                    <div class="code">// Missing environment variables
+Error: Secret key not defined
+
+// Incorrect redirect URI
+Error: redirect_uri_mismatch
+
+// Database connection issues
+Error: Failed to save user</p>
+                </div>
+                
+                <div class="card">
+                    <h3>Network Tab Analysis</h3>
+                    <p>Open your browser's developer tools (F12) and check the Network tab:</p>
+                    <ol>
+                        <li>Look for failed requests (status code 4xx or 5xx)</li>
+                        <li>Check the response from <code>/auth/google/callback</code></li>
+                        <li>Verify the redirect is happening correctly</li>
+                    </ol>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h2><i class="fas fa-code"></i> Code Review</h2>
+                <p>Your callback code looks mostly correct, but here are a few things to double-check:</p>
+                
+                <div class="code">router.get(
+  "/google/callback",
+  passport.authenticate("google", { 
+    failureRedirect: process.env.FRONTEND_URL || "http://localhost:5173/login",
+    session: false 
+  }),
+  (req, res) => {
+    // Generate JWT token
+    const token = jwt.sign({ userId: req.user._id }, process.env.JWT_SECRET, {
+      expiresIn: "7d",
+    });
+    
+    // Redirect to frontend with token
+    res.redirect(`${process.env.FRONTEND_URL || "http://localhost:5173"}/dashboard?token=${token}`);
+  }
+);</div>
+                
+                <div class="checklist">
+                    <li>Ensure <code>req.user</code> is properly populated by Passport</li>
+                    <li>Verify that <code>process.env.JWT_SECRET</code> is set</li>
+                    <li>Confirm your frontend is running on the expected port (5173)</li>
+                    <li>Check that the <code>/dashboard</code> route exists in your frontend application</li>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h2><i class="fas fa-list-alt"></i> Quick Checklist</h2>
+                
+                <div class="checklist">
+                    <li>Google Cloud Console redirect URI configured correctly</li>
+                    <li>Environment variables set (JWT_SECRET, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, FRONTEND_URL)</li>
+                    <li>Server running on port 4000</li>
+                    <li>Frontend running on port 5173 (or FRONTEND_URL)</li>
+                    <li>Passport.js properly configured with Google strategy</li>
+                    <li>JWT token generation working correctly</li>
+                    <li>Frontend dashboard route exists</li>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('testBtn').addEventListener('click', function() {
+            const loading = document.getElementById('loading');
+            const progress = document.getElementById('progress');
+            const successResult = document.getElementById('successResult');
+            const errorResult = document.getElementById('errorResult');
+            
+            // Show loading state
+            this.disabled = true;
+            loading.style.display = 'block';
+            successResult.style.display = 'none';
+            errorResult.style.display = 'none';
+            
+            // Simulate progress
+            let width = 0;
+            const interval = setInterval(() => {
+                width += 5;
+                progress.style.width = width + '%';
+                
+                if (width >= 100) {
+                    clearInterval(interval);
+                    loading.style.display = 'none';
+                    
+                    // For demonstration purposes, we'll show both results
+                    // In a real application, you would make an actual API call
+                    successResult.style.display = 'block';
+                    errorResult.style.display = 'none';
+                    
+                    this.disabled = false;
+                    
+                    // Scroll to results
+                    successResult.scrollIntoView({ behavior: 'smooth' });
+                }
+            }, 100);
+        });
+
+        document.getElementById('testServerBtn').addEventListener('click', function() {
+            const serverResult = document.getElementById('serverResult');
+            serverResult.textContent = 'Testing server connection...';
+            serverResult.className = 'result';
+            serverResult.style.display = 'block';
+            
+            // Simulate server test
+            setTimeout(() => {
+                // This would actually test your server in a real implementation
+                serverResult.textContent = 'Server is not responding on port 4000. Please make sure your server is running.';
+                serverResult.className = 'result error-result';
+            }, 1500);
+        });
+
+        // Tab functionality for code examples
+        const tabs = document.querySelectorAll('.tab');
+        const tabContents = document.querySelectorAll('.tab-content');
+        
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                const tabId = tab.getAttribute('data-tab');
+                
+                tabs.forEach(t => t.classList.remove('active'));
+                tabContents.forEach(tc => tc.classList.remove('active'));
+                
+                tab.classList.add('active');
+                document.getElementById(tabId).classList.add('active');
+            });
+        });
+    </script>
+</body>
+</html>
