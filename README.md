@@ -27,7 +27,7 @@ OpenAI API account
 
 # Installation & Setup
 1. Clone the Repository
-git clone https://github.com/yourusername/finance-ai-tracker.git
+git clone https://github.com/Shaiphali23/finance-ai-tracker.git
 cd finance-ai-tracker
 
 2. Backend Setup
