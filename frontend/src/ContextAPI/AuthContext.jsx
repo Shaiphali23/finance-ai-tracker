@@ -3,45 +3,43 @@ import axios from "axios";
 
 const AuthContext = createContext();
 
-export const useAuth = () => useContext(AuthContext);
+export const useAuth = () => {
+  return useContext(AuthContext);
+};
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [token, setToken] = useState(localStorage.getItem("token"));
 
-  const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+  // Get API URL with fallback
+  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
-  // Set axios defaults whenever token changes
+  // Set up axios defaults
   useEffect(() => {
     if (token) {
       axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
       axios.defaults.withCredentials = true;
-    } else {
-      delete axios.defaults.headers.common["Authorization"];
     }
   }, [token]);
 
-  // Check user auth status on mount or token change
   useEffect(() => {
     checkAuthStatus();
   }, [token]);
 
   const checkAuthStatus = async () => {
-    const storedToken = localStorage.getItem("token");
-    if (!storedToken) {
+    if (!token) {
       setUser(null);
       setLoading(false);
       return;
     }
 
     try {
-      axios.defaults.headers.common["Authorization"] = `Bearer ${storedToken}`;
       const response = await axios.get(`${API_URL}/auth/profile`);
       setUser(response.data.user);
-      setToken(storedToken);
     } catch (error) {
       console.error("Auth check error:", error);
+      // If token is invalid, clear it
       if (error.response?.status === 401) {
         localStorage.removeItem("token");
         setToken(null);
@@ -55,23 +53,33 @@ export const AuthProvider = ({ children }) => {
 
   const loginWithGoogle = async (googleToken) => {
     try {
-      if (!googleToken) {
-        return { success: false, message: "No Google token provided" };
+      // If we already have a token from Google, use it directly
+      if (googleToken) {
+        // Verify the token and get user data
+        const response = await axios.get(`${API_URL}/auth/profile`, {
+          headers: { Authorization: `Bearer ${googleToken}` },
+        });
+
+        localStorage.setItem("token", googleToken);
+        setToken(googleToken);
+        setUser(response.data.user);
+        axios.defaults.headers.common[
+          "Authorization"
+        ] = `Bearer ${googleToken}`;
+
+        return { success: true };
       }
 
-      // Exchange Google token for backend JWT
+      // when we don't have a token
       const response = await axios.post(`${API_URL}/auth/google`, {
         token: googleToken,
       });
 
       const { token: jwtToken, user: userData } = response.data;
-
-      // Store JWT and set axios headers
       localStorage.setItem("token", jwtToken);
       setToken(jwtToken);
       setUser(userData);
       axios.defaults.headers.common["Authorization"] = `Bearer ${jwtToken}`;
-      axios.defaults.withCredentials = true;
 
       return { success: true };
     } catch (error) {
@@ -89,6 +97,7 @@ export const AuthProvider = ({ children }) => {
     } catch (error) {
       console.error("Logout error:", error);
     } finally {
+      // Clear local storage and state
       localStorage.removeItem("token");
       setToken(null);
       setUser(null);
@@ -96,7 +105,13 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const value = { user, loginWithGoogle, logout, loading, token };
+  const value = {
+    user,
+    loginWithGoogle,
+    logout,
+    loading,
+    token,
+  };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
