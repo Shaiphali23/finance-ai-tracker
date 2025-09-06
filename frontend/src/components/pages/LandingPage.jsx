@@ -6,9 +6,12 @@ const LandingPage = () => {
   const { loginWithGoogle } = useAuth();
   const navigate = useNavigate();
 
+  // Get API URL with fallback
+  const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+
   const handleGoogleLogin = async () => {
     // This will open Google OAuth in a popup
-    window.open('http://localhost:5000/auth/google', '_self');
+    window.open(`${API_URL}/auth/google`, '_self');
   };
 
   return (
